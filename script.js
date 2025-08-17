@@ -779,9 +779,10 @@ startDraining() {
                 const elapsedSeconds = Math.floor((Date.now() - this.levelStartTime) / 1000);
                 const increaseCount = Math.floor(elapsedSeconds / 5);
                 
-                if (increaseCount > this.lastDrainIncrease) {
+                // Increase drain rate incrementally to prevent overshooting maxDrainRate
+                while (increaseCount > this.lastDrainIncrease && this.drainRate < this.maxDrainRate) {
                     this.drainRate = Math.min(this.drainRate + 5, this.maxDrainRate);
-                    this.lastDrainIncrease = increaseCount;
+                    this.lastDrainIncrease++;
                 }
                 
                 this.score = Math.max(0, this.score - this.drainRate);
