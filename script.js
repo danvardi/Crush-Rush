@@ -17,6 +17,7 @@ class CandyRushGame {
         this.isDraining = false;
         this.drainInterval = null;
         this.drainRate = 10; // Initial points drained per second
+        this.maxDrainRate = 10; // Maximum drain rate based on level/floor
         this.levelStartTime = null; // Track when level started
         this.lastDrainIncrease = 0; // Track when drain rate was last increased
         
@@ -769,14 +770,17 @@ startDraining() {
         this.lastDrainIncrease = 0;
         this.drainRate = 10; // Reset to initial rate
         
+        // Calculate maximum drain rate based on level and floor
+        this.maxDrainRate = 10 + 5 * ((this.floor - 1) * 3 + this.level - 1);
+        
         this.drainInterval = setInterval(() => {
             if (this.score > 0) {
-                // Increase drain rate every 5 seconds
+                // Increase drain rate every 5 seconds, up to maximum
                 const elapsedSeconds = Math.floor((Date.now() - this.levelStartTime) / 1000);
                 const increaseCount = Math.floor(elapsedSeconds / 5);
                 
                 if (increaseCount > this.lastDrainIncrease) {
-                    this.drainRate += 5;
+                    this.drainRate = Math.min(this.drainRate + 5, this.maxDrainRate);
                     this.lastDrainIncrease = increaseCount;
                 }
                 
@@ -840,6 +844,7 @@ nextLevel() {
         this.isAnimating = false;
         this.isDraining = false;
         this.drainRate = 10; // Reset drain rate for new level
+        this.maxDrainRate = 10 + 5 * ((this.floor - 1) * 3 + this.level - 1); // Reset max drain rate
         this.levelStartTime = null;
         this.lastDrainIncrease = 0;
         
@@ -867,6 +872,8 @@ nextLevel() {
         this.baseScore = 100;
         this.targetScore = 100;
         this.isDraining = false;
+        this.drainRate = 10; // Reset drain rate for new game
+        this.maxDrainRate = 10; // Reset max drain rate for new game
         
         this.gameOverModal.classList.remove('show');
         this.levelCompleteModal.classList.remove('show');
