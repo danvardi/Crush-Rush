@@ -16,6 +16,9 @@ class CandyRushGame {
         // Draining score system
         this.isDraining = false;
         this.drainInterval = null;
+        this.drainRate = 10; // Initial points drained per second
+        this.levelStartTime = null; // Track when level started
+        this.lastDrainIncrease = 0; // Track when drain rate was last increased
         
         // DOM elements
         this.gameBoard = document.getElementById('gameBoard');
@@ -758,13 +761,26 @@ updateUI() {
         }
     }
 
-    startDraining() {
+startDraining() {
         if (this.isDraining) return;
         
         this.isDraining = true;
+        this.levelStartTime = Date.now();
+        this.lastDrainIncrease = 0;
+        this.drainRate = 10; // Reset to initial rate
+        
         this.drainInterval = setInterval(() => {
             if (this.score > 0) {
-                this.score = Math.max(0, this.score - 10);
+                // Increase drain rate every 5 seconds
+                const elapsedSeconds = Math.floor((Date.now() - this.levelStartTime) / 1000);
+                const increaseCount = Math.floor(elapsedSeconds / 5);
+                
+                if (increaseCount > this.lastDrainIncrease) {
+                    this.drainRate += 5;
+                    this.lastDrainIncrease = increaseCount;
+                }
+                
+                this.score = Math.max(0, this.score - this.drainRate);
                 this.updateUI();
                 
                 // Check if level is complete
@@ -772,8 +788,9 @@ updateUI() {
                     this.stopDraining();
                     this.checkLevelComplete();
                 }
-                // Check if score reached 0 - game over
-                else if (this.score <= 0) {
+                
+                // Check if game over
+                if (this.score <= 0) {
                     this.stopDraining();
                     this.gameOver();
                 }
@@ -822,6 +839,9 @@ nextLevel() {
         this.selectedCandy = null;
         this.isAnimating = false;
         this.isDraining = false;
+        this.drainRate = 10; // Reset drain rate for new level
+        this.levelStartTime = null;
+        this.lastDrainIncrease = 0;
         
         // Create new board
         this.initializeBoard();
