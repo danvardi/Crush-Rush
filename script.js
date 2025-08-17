@@ -4,7 +4,6 @@ class CandyRushGame {
         this.boardSize = 8;
         this.candyTypes = ['red', 'blue', 'green', 'yellow', 'purple', 'orange'];
         this.score = 0;
-        this.moves = 25;
         this.selectedCandy = null;
         this.isAnimating = false;
         
@@ -21,7 +20,6 @@ class CandyRushGame {
         // DOM elements
         this.gameBoard = document.getElementById('gameBoard');
         this.scoreElement = document.getElementById('score');
-        this.movesElement = document.getElementById('moves');
         this.targetScoreElement = document.getElementById('targetScore');
         this.floorElement = document.getElementById('floor');
         this.levelElement = document.getElementById('level');
@@ -344,7 +342,6 @@ class CandyRushGame {
         
         if (matches.length > 0) {
             // Valid move
-            this.moves--;
             this.updateUI();
             await this.processMatches();
         } else {
@@ -358,10 +355,6 @@ class CandyRushGame {
         // Check for level completion first
         if (this.checkLevelComplete()) {
             return;
-        }
-        
-        if (this.moves <= 0) {
-            this.gameOver();
         }
     }
 
@@ -712,7 +705,6 @@ class CandyRushGame {
 
     updateUI() {
         this.scoreElement.textContent = this.score;
-        this.movesElement.textContent = this.moves;
         this.targetScoreElement.textContent = this.targetScore;
         this.floorElement.textContent = this.floor;
         this.levelElement.textContent = this.level;
@@ -723,7 +715,7 @@ class CandyRushGame {
         this.progressText.textContent = `${this.score} / ${this.targetScore}`;
     }
 
-    startDraining() {
+startDraining() {
         if (this.isDraining) return;
         
         this.isDraining = true;
@@ -737,9 +729,8 @@ class CandyRushGame {
                     this.stopDraining();
                     this.checkLevelComplete();
                 }
-                
                 // Check if score reached 0 - game over
-                if (this.score <= 0) {
+                else if (this.score <= 0) {
                     this.stopDraining();
                     this.gameOver();
                 }
@@ -756,21 +747,13 @@ class CandyRushGame {
     }
 
     levelComplete() {
-        // Calculate bonus for remaining moves
-        const moveBonus = this.moves * 5;
-        this.score += moveBonus;
-        
         // Update modal with completion info
         document.getElementById('completedFloor').textContent = this.floor;
         document.getElementById('completedLevel').textContent = this.level;
         document.getElementById('levelScore').textContent = this.score;
         
         const bonusText = document.getElementById('bonusText');
-        if (moveBonus > 0) {
-            bonusText.textContent = `+${moveBonus} bonus points for ${this.moves} remaining moves!`;
-        } else {
-            bonusText.textContent = '';
-        }
+        bonusText.textContent = '';
         
         this.levelCompleteModal.classList.add('show');
     }
@@ -793,7 +776,6 @@ nextLevel() {
         
         // Reset for new level - zero out the score
         this.score = 0;
-        this.moves = 25;
         this.selectedCandy = null;
         this.isAnimating = false;
         this.isDraining = false;
@@ -815,7 +797,6 @@ nextLevel() {
         this.stopDraining();
         
         this.score = 0;
-        this.moves = 25;
         this.selectedCandy = null;
         this.isAnimating = false;
         this.floor = 1;
