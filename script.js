@@ -7,15 +7,34 @@ class CandyRushGame {
         this.moves = 25;
         this.selectedCandy = null;
         this.isAnimating = false;
+        
+        // Level progression system
+        this.floor = 1;
+        this.level = 1;
+        this.baseScore = 100;
+        this.targetScore = 100;
+        
+        // Draining score system
+        this.isDraining = false;
+        this.drainInterval = null;
+        
+        // DOM elements
         this.gameBoard = document.getElementById('gameBoard');
         this.scoreElement = document.getElementById('score');
         this.movesElement = document.getElementById('moves');
+        this.targetScoreElement = document.getElementById('targetScore');
+        this.floorElement = document.getElementById('floor');
+        this.levelElement = document.getElementById('level');
+        this.progressFill = document.getElementById('progressFill');
+        this.progressText = document.getElementById('progressText');
         this.particlesContainer = document.getElementById('particlesContainer');
         this.gameOverModal = document.getElementById('gameOverModal');
+        this.levelCompleteModal = document.getElementById('levelCompleteModal');
         
         this.initializeBoard();
         this.setupEventListeners();
         this.renderBoard();
+        this.updateUI();
     }
 
     initializeBoard() {
@@ -57,6 +76,7 @@ class CandyRushGame {
         document.getElementById('newGameBtn').addEventListener('click', () => this.newGame());
         document.getElementById('hintBtn').addEventListener('click', () => this.showHint());
         document.getElementById('playAgainBtn').addEventListener('click', () => this.newGame());
+        document.getElementById('nextLevelBtn').addEventListener('click', () => this.nextLevel());
         
         // Touch and mouse events for drag and drop
         this.gameBoard.addEventListener('mousedown', (e) => this.handleStart(e));
@@ -69,6 +89,34 @@ class CandyRushGame {
         
         // Prevent default drag behavior
         this.gameBoard.addEventListener('dragstart', (e) => e.preventDefault());
+    }
+
+    calculateTargetScore() {
+        // Base score starts at 100
+        let baseScore = 100;
+        
+        // Apply floor multiplier (2.5x for each new floor)
+        if (this.floor > 1) {
+            baseScore = Math.floor(100 * Math.pow(2.5, this.floor - 1));
+        }
+        
+        // Apply level multipliers within the floor
+        let target = baseScore;
+        if (this.level === 2) {
+            target = Math.floor(baseScore * 1.5); // 1.5x for second level
+        } else if (this.level === 3) {
+            target = baseScore * 2; // 2x for third level
+        }
+        
+        return target;
+    }
+
+    checkLevelComplete() {
+        if (this.score >= this.targetScore) {
+            this.levelComplete();
+            return true;
+        }
+        return false;
     }
 
     renderBoard() {
@@ -307,6 +355,11 @@ class CandyRushGame {
         
         this.isAnimating = false;
         
+        // Check for level completion first
+        if (this.checkLevelComplete()) {
+            return;
+        }
+        
         if (this.moves <= 0) {
             this.gameOver();
         }
@@ -415,6 +468,11 @@ class CandyRushGame {
 
     async processMatches() {
         const matches = this.findAllMatches();
+        
+        // Start draining after first match in level
+        if (matches.length > 0 && !this.isDraining) {
+            this.startDraining();
+        }
         
         while (matches.length > 0) {
             // Add score
@@ -655,19 +713,119 @@ class CandyRushGame {
     updateUI() {
         this.scoreElement.textContent = this.score;
         this.movesElement.textContent = this.moves;
+        this.targetScoreElement.textContent = this.targetScore;
+        this.floorElement.textContent = this.floor;
+        this.levelElement.textContent = this.level;
+        
+        // Update progress bar
+        const progress = Math.min((this.score / this.targetScore) * 100, 100);
+        this.progressFill.style.width = `${progress}%`;
+        this.progressText.textContent = `${this.score} / ${this.targetScore}`;
     }
 
-    gameOver() {
-        document.getElementById('finalScore').textContent = this.score;
-        this.gameOverModal.classList.add('show');
+    startDraining() {
+        if (this.isDraining) return;
+        
+        this.isDraining = true;
+        this.drainInterval = setInterval(() => {
+            if (this.score > 0) {
+                this.score = Math.max(0, this.score - 10);
+                this.updateUI();
+                
+                // Check if level is complete
+                if (this.score >= this.targetScore) {
+                    this.stopDraining();
+                    this.checkLevelComplete();
+                }
+                
+                // Check if score reached 0 - game over
+                if (this.score <= 0) {
+                    this.stopDraining();
+                    this.gameOver();
+                }
+            }
+        }, 1000);
     }
 
-    newGame() {
+    stopDraining() {
+        if (this.drainInterval) {
+            clearInterval(this.drainInterval);
+            this.drainInterval = null;
+        }
+        this.isDraining = false;
+    }
+
+    levelComplete() {
+        // Calculate bonus for remaining moves
+        const moveBonus = this.moves * 5;
+        this.score += moveBonus;
+        
+        // Update modal with completion info
+        document.getElementById('completedFloor').textContent = this.floor;
+        document.getElementById('completedLevel').textContent = this.level;
+        document.getElementById('levelScore').textContent = this.score;
+        
+        const bonusText = document.getElementById('bonusText');
+        if (moveBonus > 0) {
+            bonusText.textContent = `+${moveBonus} bonus points for ${this.moves} remaining moves!`;
+        } else {
+            bonusText.textContent = '';
+        }
+        
+        this.levelCompleteModal.classList.add('show');
+    }
+
+nextLevel() {
+        this.levelCompleteModal.classList.remove('show');
+        this.stopDraining();
+        
+        // Advance to next level
+        this.level++;
+        
+        // Check if we need to advance to next floor
+        if (this.level > 3) {
+            this.floor++;
+            this.level = 1;
+        }
+        
+        // Calculate new target score
+        this.targetScore = this.calculateTargetScore();
+        
+        // Reset for new level - zero out the score
         this.score = 0;
         this.moves = 25;
         this.selectedCandy = null;
         this.isAnimating = false;
+        this.isDraining = false;
+        
+        // Create new board
+        this.initializeBoard();
+        this.renderBoard();
+        this.updateUI();
+    }
+
+    gameOver() {
+        document.getElementById('finalScore').textContent = this.score;
+        document.getElementById('finalFloor').textContent = this.floor;
+        document.getElementById('finalLevel').textContent = this.level;
+        this.gameOverModal.classList.add('show');
+    }
+
+    newGame() {
+        this.stopDraining();
+        
+        this.score = 0;
+        this.moves = 25;
+        this.selectedCandy = null;
+        this.isAnimating = false;
+        this.floor = 1;
+        this.level = 1;
+        this.baseScore = 100;
+        this.targetScore = 100;
+        this.isDraining = false;
+        
         this.gameOverModal.classList.remove('show');
+        this.levelCompleteModal.classList.remove('show');
         
         this.initializeBoard();
         this.renderBoard();

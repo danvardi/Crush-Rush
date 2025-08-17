@@ -63,18 +63,64 @@ body {
     100% { transform: rotate(360deg); }
 }
 
+.level-info {
+    margin-bottom: 15px;
+}
+
+.level-display {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.level-label {
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.progress-bar {
+    position: relative;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    height: 25px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4ecdc4, #44a08d);
+    border-radius: 14px;
+    transition: width 0.3s ease;
+    width: 0%;
+}
+
+.progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    z-index: 1;
+}
+
 .score-container {
     display: flex;
     justify-content: space-around;
-    gap: 20px;
+    gap: 15px;
 }
 
 .score-item {
     background: rgba(255, 255, 255, 0.2);
-    padding: 10px 20px;
+    padding: 8px 15px;
     border-radius: 15px;
     border: 1px solid rgba(255, 255, 255, 0.3);
     flex: 1;
+    min-width: 0;
 }
 
 .score-label {
@@ -376,6 +422,36 @@ body {
     background: rgba(255, 255, 255, 0.3);
     border-color: rgba(255, 255, 255, 0.6);
     transform: translateY(-2px);
+}
+
+/* Level Complete Modal Styles */
+.modal-content.level-complete {
+    background: linear-gradient(135deg, #4ecdc4, #44a08d);
+}
+
+.level-stats {
+    margin: 20px 0;
+}
+
+.level-complete-text {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.bonus-text {
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-top: 10px;
+}
+
+.level-reached {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1rem;
+    margin-bottom: 20px;
+    font-weight: 600;
 }
 
 /* Responsive Design */
