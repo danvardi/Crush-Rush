@@ -766,23 +766,19 @@ startDraining() {
         if (this.isDraining) return;
         
         this.isDraining = true;
-        this.levelStartTime = Date.now();
-        this.lastDrainIncrease = 0;
         this.drainRate = 10; // Reset to initial rate
+        let intervalCount = 0; // Count how many times the interval has run
         
         // Calculate maximum drain rate based on level and floor
         this.maxDrainRate = 10 + 5 * ((this.floor - 1) * 3 + this.level - 1);
         
         this.drainInterval = setInterval(() => {
             if (this.score > 0) {
-                // Increase drain rate every 5 seconds, up to maximum
-                const elapsedSeconds = Math.floor((Date.now() - this.levelStartTime) / 1000);
-                const increaseCount = Math.floor(elapsedSeconds / 5);
+                intervalCount++;
                 
-                // Increase drain rate incrementally to prevent overshooting maxDrainRate
-                while (increaseCount > this.lastDrainIncrease && this.drainRate < this.maxDrainRate) {
+                // Increase drain rate every 5 intervals (5 seconds), up to maximum
+                if (intervalCount % 5 === 0 && this.drainRate < this.maxDrainRate) {
                     this.drainRate = Math.min(this.drainRate + 5, this.maxDrainRate);
-                    this.lastDrainIncrease++;
                 }
                 
                 this.score = Math.max(0, this.score - this.drainRate);
