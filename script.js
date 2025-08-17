@@ -497,6 +497,9 @@ class CandyRushGame {
             matches.push(...newMatches);
         }
         
+        // Check if there are any possible moves left
+        await this.checkForPossibleMoves();
+        
         this.updateUI();
     }
 
@@ -703,7 +706,7 @@ class CandyRushGame {
         return moves;
     }
 
-    updateUI() {
+updateUI() {
         this.scoreElement.textContent = this.score;
         this.targetScoreElement.textContent = this.targetScore;
         this.floorElement.textContent = this.floor;
@@ -715,7 +718,47 @@ class CandyRushGame {
         this.progressText.textContent = `${this.score} / ${this.targetScore}`;
     }
 
-startDraining() {
+    async checkForPossibleMoves() {
+        const possibleMoves = this.findPossibleMoves();
+        if (possibleMoves.length === 0) {
+            // No moves left - explode all candies
+            await this.explodeAllCandies();
+            // Refill the board
+            this.initializeBoard();
+            this.renderBoard();
+            this.updateUI();
+        }
+    }
+
+    async explodeAllCandies() {
+        // Create an array of all board positions
+        const allPositions = [];
+        for (let row = 0; row < this.boardSize; row++) {
+            for (let col = 0; col < this.boardSize; col++) {
+                allPositions.push({ row, col });
+            }
+        }
+        
+        // Animate all candies as matching
+        allPositions.forEach(({ row, col }) => {
+            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+            const candy = cell.querySelector('.candy');
+            candy.classList.add('matching');
+            this.createParticles(row, col);
+        });
+        
+        // Wait for animation
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // Clear the board
+        for (let row = 0; row < this.boardSize; row++) {
+            for (let col = 0; col < this.boardSize; col++) {
+                this.board[row][col] = null;
+            }
+        }
+    }
+
+    startDraining() {
         if (this.isDraining) return;
         
         this.isDraining = true;
